@@ -4,180 +4,216 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chá do Levi Henrique</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap');
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Nunito', sans-serif; 
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); 
+            margin: 0; 
+            min-height: 100vh;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px;
+            color: #2d3436;
+        }
 
-        body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #f0f8ff;
-            color: #2c3e50;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        /* Paineis flutuantes (Glassmorphism) */
+        #login-screen, #bingo-screen { 
+            background: rgba(255, 255, 255, 0.9); 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            max-width: 500px;
+            width: 100%;
             text-align: center;
         }
+        #bingo-screen { display: none; }
 
-        .header {
-            margin-bottom: 20px;
+        h1, h2 { color: #0984e3; margin-top: 0; }
+        .subtitle { color: #636e72; font-size: 16px; margin-bottom: 20px; }
+
+        /* Estilos do Login */
+        input { 
+            padding: 15px; font-size: 16px; border-radius: 12px; 
+            border: 2px solid #74b9ff; margin-bottom: 20px; width: 100%; 
+            outline: none; font-family: 'Nunito', sans-serif; transition: 0.3s;
+        }
+        input:focus { border-color: #0984e3; box-shadow: 0 0 10px rgba(9,132,227,0.2); }
+        
+        button.btn-primary { 
+            padding: 15px 30px; background: #0984e3; color: white; border: none; 
+            border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; 
+            transition: all 0.3s; width: 100%; box-shadow: 0 5px 15px rgba(9,132,227,0.3);
+        }
+        button.btn-primary:hover { background: #74b9ff; transform: translateY(-2px); }
+
+        /* Estilos da Cartela 4x4 */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 8px; width: 100%; margin-top: 15px; 
+        }
+        .cell { 
+            background: #ffffff; border: 2px solid #a29bfe; border-radius: 12px; 
+            padding: 5px; font-size: 12px; font-weight: 800; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; 
+            aspect-ratio: 1/1; text-align: center; transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #4b6584;
+        }
+        
+        /* Efeito de marcado */
+        .cell.marcado { 
+            background: #55efc4; color: #2d3436; text-decoration: line-through; 
+            border-color: #00b894; transform: scale(0.95); 
+            box-shadow: inset 0 3px 5px rgba(0,0,0,0.1); 
+        }
+        
+        /* Quadrado Central do Levi */
+        .central { 
+            background: #ffeaa7; color: #d63031; font-size: 14px; 
+            border-color: #fdcb6e; pointer-events: none; 
+            box-shadow: 0 0 15px rgba(253, 203, 110, 0.4);
         }
 
-        .header h1 {
-            color: #0984e3;
-            margin: 0;
-            font-size: 28px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        /* Botão Secundário (Gerar Nova) */
+        button.btn-secondary {
+            margin-top: 25px; padding: 12px 20px; background: #ff7675; color: white; 
+            border: none; border-radius: 12px; font-weight: 800; font-size: 14px; 
+            cursor: pointer; transition: all 0.3s; box-shadow: 0 5px 15px rgba(255,118,117,0.3);
         }
+        button.btn-secondary:hover { background: #d63031; transform: translateY(-2px); }
 
-        .header p {
-            color: #636e72;
-            margin: 5px 0 0 0;
-            font-size: 16px;
+        /* Animação BINGO */
+        .bingo-alert {
+            display: none; color: #d63031; font-size: 24px; font-weight: 900; 
+            margin-top: 15px; animation: piscar 1s infinite alternate;
         }
-
-        .bingo-board {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            width: 100%;
-            max-width: 500px;
-            background: #ffffff;
-            padding: 10px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border: 3px solid #74b9ff;
-        }
-
-        .bingo-cell {
-            aspect-ratio: 1 / 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #e8f4f8;
-            border: 2px solid #a29bfe;
-            border-radius: 10px;
-            font-size: 12px;
-            line-height: 1.2;
-            padding: 2px;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.2s ease;
-            word-wrap: break-word;
-            overflow: hidden;
-        }
-
-        /* Efeito quando o convidado clica para marcar */
-        .bingo-cell.marcado {
-            background-color: #55efc4;
-            border-color: #00b894;
-            color: #2d3436;
-            text-decoration: line-through;
-            transform: scale(0.95);
-            box-shadow: inset 0 3px 5px rgba(0,0,0,0.1);
-        }
-
-        /* O quadrado central com o nome do bebê */
-        .bingo-cell.central {
-            background-color: #ffeaa7;
-            border-color: #fdcb6e;
-            color: #d63031;
-            font-size: 14px;
-            font-weight: 800;
-            text-decoration: none !important;
-            transform: none !important;
-            box-shadow: none;
-            cursor: default;
-        }
-
-        .btn-nova-cartela {
-            margin-top: 25px;
-            padding: 12px 24px;
-            background-color: #0984e3;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
-            font-family: 'Nunito', sans-serif;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(9, 132, 227, 0.3);
-            transition: background-color 0.3s;
-        }
-
-        .btn-nova-cartela:hover {
-            background-color: #74b9ff;
-        }
+        @keyframes piscar { from { transform: scale(1); } to { transform: scale(1.1); } }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>🍼 Chá do Levi 🍼</h1>
-        <p>Toque nos quadrados para marcar!</p>
+    <div id="login-screen">
+        <div style="font-size: 40px; margin-bottom: 10px;">🧸</div>
+        <h1>Chá do Levi</h1>
+        <p class="subtitle">Digite seu nome para pegar sua cartela interativa!</p>
+        <input type="text" id="nomeJogador" placeholder="Ex: Tio Guilherme" autocomplete="off">
+        <button class="btn-primary" onclick="entrarNoJogo()">Entrar no Bingo</button>
     </div>
 
-    <div class="bingo-board" id="bingo-board">
-        </div>
-
-    <button class="btn-nova-cartela" onclick="gerarCartela()">Gerar Nova Cartela</button>
+    <div id="bingo-screen">
+        <h2>Cartela de: <span id="displayNome" style="color: #a29bfe;"></span></h2>
+        <div class="grid" id="board"></div>
+        
+        <div id="bingoMensagem" class="bingo-alert">🎉 BINGO!!! 🎉</div>
+        
+        <button class="btn-secondary" onclick="gerarCartela()">🔄 Gerar Nova Cartela</button>
+    </div>
 
     <script>
-        const listaPalavras = [
+        // ==========================================
+        // 1. COLE SUAS CHAVES DO FIREBASE AQUI
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBMHqbPvA1al5GS3HgncuE-At1iV1ZHJTw",
+            authDomain: "bingo-levi.firebaseapp.com",
+            projectId: "bingo-levi",
+            storageBucket: "bingo-levi.firebasestorage.app",
+            messagingSenderId: "299654685917",
+            appId: "1:299654685917:web:e44f6e7b33fc413f01e734",
+            measurementId: "G-7WEZMLKFWF"
+        };
+        // Inicializa o Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        let meuNome = "";
+        
+        // Manteve-se uma lista grande de palavras para as cartelas poderem ser bem diferentes umas das outras
+        const palavras = [
             "Fralda P", "Fralda M", "Fralda G", "Lenço Umedecido", "Pomada", 
             "Shampoo", "Sabonete", "Cotonete", "Algodão", "Escova", 
             "Body Curto", "Body Longo", "Macacão", "Mijão", "Meia", 
             "Sapatinho", "Touca", "Luva", "Babador", "Toalha", 
             "Manta", "Lençol", "Cueiro", "Chupeta", "Mamadeira", 
-            "Chocalho", "Mordedor", "Termômetro", "Aspirador Nasal", "Naninha"
+            "Chocalho", "Mordedor", "Termômetro", "Aspirador", "Naninha"
         ];
 
-        function embaralhar(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex != 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-            }
-            return array;
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
         }
 
-        function toggleMarca(elemento) {
-            // Não deixa marcar/desmarcar o quadrado central
-            if (!elemento.classList.contains('central')) {
-                elemento.classList.toggle('marcado');
-            }
+        function entrarNoJogo() {
+            const input = document.getElementById('nomeJogador').value.trim();
+            if (input === "") return alert("Por favor, digite seu nome!");
+            
+            meuNome = input;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('bingo-screen').style.display = 'flex';
+            document.getElementById('displayNome').innerText = meuNome;
+
+            gerarCartela();
         }
 
         function gerarCartela() {
-            const board = document.getElementById('bingo-board');
-            board.innerHTML = ''; // Limpa a cartela atual
+            const board = document.getElementById('board');
+            board.innerHTML = ""; // Limpa a cartela antiga
+            document.getElementById('bingoMensagem').style.display = 'none'; // Esconde o aviso de Bingo
 
-            // Pega 24 palavras aleatórias
-            let palavrasSorteadas = embaralhar([...listaPalavras]).slice(0, 24);
+            // Pega apenas 15 palavras aleatórias
+            let cartela = shuffle([...palavras]).slice(0, 15);
             
-            // Coloca o nome no centro (posição 12 de um array de 25 itens)
-            palavrasSorteadas.splice(12, 0, "LEVI HENRIQUE");
+            // Insere o Levi Henrique em uma posição de destaque (Índice 5 ou 6 ficam no meio do 4x4)
+            cartela.splice(5, 0, "LEVI HENRIQUE"); 
 
-            palavrasSorteadas.forEach((palavra, index) => {
+            // Zera a pontuação no banco de dados quando gera nova cartela
+            db.ref('jogadores/' + meuNome).set({
+                pontos: 0,
+                status: "Jogando..."
+            });
+
+            cartela.forEach((palavra, index) => {
                 const div = document.createElement('div');
-                div.className = 'bingo-cell';
+                div.className = 'cell';
                 div.innerText = palavra;
                 
-                if (index === 12) {
+                if (index === 5) { // O quadrado do Levi
                     div.classList.add('central');
                 } else {
-                    // Adiciona o evento de clique para marcar/desmarcar
-                    div.onclick = function() { toggleMarca(this); };
+                    div.onclick = function() { marcar(this); };
                 }
-
                 board.appendChild(div);
             });
         }
 
-        // Gera a primeira cartela assim que a página carrega
-        window.onload = gerarCartela;
+        function marcar(elemento) {
+            elemento.classList.toggle('marcado');
+            
+            // Conta quantos itens a pessoa marcou
+            const marcados = document.querySelectorAll('.marcado').length;
+            
+            // Se marcou 15 itens, ele bateu o Bingo (o espaço do Levi não conta no clique)
+            const bateuBingo = marcados === 15;
+
+            // Atualiza em tempo real no banco de dados
+            db.ref('jogadores/' + meuNome).update({
+                pontos: marcados,
+                status: bateuBingo ? "🔥 BINGO!!!" : "Jogando..."
+            });
+
+            if(bateuBingo) {
+                document.getElementById('bingoMensagem').style.display = 'block';
+            }
+        }
     </script>
 </body>
 </html>
