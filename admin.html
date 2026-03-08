@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - Chá do Levi</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Nunito', sans-serif; 
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); 
+            margin: 0; padding: 20px; color: #2d3436; min-height: 100vh;
+        }
+
+        .header-admin { text-align: center; margin-bottom: 20px; color: #0984e3; }
+        .header-admin h1 { margin: 0; font-size: 32px; font-weight: 900; }
+
+        .container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; }
+        
+        .panel { 
+            background: rgba(255, 255, 255, 0.95); 
+            border-radius: 20px; padding: 30px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            flex: 1; display: flex; flex-direction: column;
+        }
+
+        h2 { color: #6c5ce7; margin-top: 0; border-bottom: 2px dashed #dfe6e9; padding-bottom: 10px; }
+
+        /* Estilos do Sorteio */
+        .palavra-destaque { 
+            font-size: 50px; font-weight: 900; color: #d63031; text-align: center; 
+            background: #ffeaa7; padding: 30px 20px; border-radius: 15px; 
+            border: 4px solid #fdcb6e; margin: 20px 0; min-height: 130px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .btn-sortear { 
+            background: #00b894; color: white; border: none; padding: 20px; 
+            font-size: 24px; font-weight: 900; border-radius: 15px; cursor: pointer; 
+            transition: 0.3s; box-shadow: 0 10px 20px rgba(0, 184, 148, 0.3);
+            font-family: 'Nunito', sans-serif;
+        }
+        .btn-sortear:hover { background: #00cec9; transform: scale(1.02); }
+
+        .historico { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
+        .tag { background: #dfe6e9; padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: 800; color: #636e72; }
+
+        /* Estilos do Placar (Jogadores) */
+        .jogador-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px; border-bottom: 1px solid #f1f2f6; font-size: 18px; 
+            background: #f8f9fa; border-radius: 10px; margin-bottom: 10px;
+        }
+        .jogador-row.ganhador { 
+            background: #55efc4; color: #2d3436; font-weight: bold; border: 2px solid #00b894;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 184, 148, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0); } }
+
+        .btn-danger { 
+            background: #ff7675; color: white; border: none; padding: 10px 15px; 
+            font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: auto;
+        }
+
+        @media (max-width: 800px) {
+            .container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-admin">
+        <h1>⚙️ Painel de Controle - Maria & Guilherme ⚙️</h1>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>🧸 Sorteador do Levi</h2>
+            <div class="palavra-destaque" id="palavraAtual">Aperte para Sortear</div>
+            <button class="btn-sortear" onclick="sortearPalavra()">🎲 SORTEAR PALAVRA</button>
+            
+            <h3 style="margin-top: 30px; color: #a29bfe;">Já Sorteadas (<span id="contador">0</span>/30):</h3>
+            <div class="historico" id="historico"></div>
+
+            <button class="btn-danger" style="margin-top: 30px;" onclick="reiniciarJogo()">⚠️ Reiniciar Todo o Sorteio e Placar</button>
+        </div>
+
+        <div class="panel">
+            <h2>🏆 Placar ao Vivo</h2>
+            <div id="listaJogadores">
+                <p style="color: #b2bec3; text-align: center;">Nenhum jogador conectado ainda...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. COLE SUAS CHAVES DO FIREBASE AQUI!
+        // ==========================================
+        const firebaseConfig = {
+           apiKey: "AIzaSyBMHqbPvA1al5GS3HgncuE-At1iV1ZHJTw",
+            authDomain: "bingo-levi.firebaseapp.com",
+            projectId: "bingo-levi",
+            storageBucket: "bingo-levi.firebasestorage.app",
+            messagingSenderId: "299654685917",
+            appId: "1:299654685917:web:e44f6e7b33fc413f01e734",
+            measurementId: "G-7WEZMLKFWF"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // Lógica do Sorteio
+        const todasPalavras = [
+            "Fralda P", "Fralda M", "Fralda G", "Lenço Umedecido", "Pomada", 
+            "Shampoo", "Sabonete", "Cotonete", "Algodão", "Escova", 
+            "Body Curto", "Body Longo", "Macacão", "Mijão", "Meia", 
+            "Sapatinho", "Touca", "Luva", "Babador", "Toalha", 
+            "Manta", "Lençol", "Cueiro", "Chupeta", "Mamadeira", 
+            "Chocalho", "Mordedor", "Termômetro", "Aspirador", "Naninha"
+        ];
+        
+        let disponiveis = [...todasPalavras];
+        let sorteadas = [];
+
+        function sortearPalavra() {
+            if (disponiveis.length === 0) {
+                return alert("Fim de Jogo! Todas as 30 palavras já foram sorteadas!");
+            }
+
+            // Pega uma palavra aleatória e remove da lista de disponíveis
+            const randomIndex = Math.floor(Math.random() * disponiveis.length);
+            const palavra = disponiveis.splice(randomIndex, 1)[0];
+            
+            // Adiciona no início da lista de sorteadas
+            sorteadas.unshift(palavra);
+            atualizarTelaSorteio();
+        }
+
+        function atualizarTelaSorteio() {
+            document.getElementById('palavraAtual').innerText = sorteadas[0];
+            document.getElementById('contador').innerText = sorteadas.length;
+            
+            // Renderiza o histórico (pulando a primeira que já está em destaque)
+            const historicoHTML = sorteadas.slice(1).map(p => `<span class="tag">${p}</span>`).join('');
+            document.getElementById('historico').innerHTML = historicoHTML;
+        }
+
+        function reiniciarJogo() {
+            if(confirm("Tem certeza? Isso vai zerar o sorteio e apagar o placar atual!")) {
+                disponiveis = [...todasPalavras];
+                sorteadas = [];
+                document.getElementById('palavraAtual').innerText = "Aperte para Sortear";
+                document.getElementById('contador').innerText = "0";
+                document.getElementById('historico').innerHTML = "";
+                
+                // Limpa o banco de dados
+                db.ref('jogadores').remove();
+            }
+        }
+
+        // ==========================================
+        // 2. LÓGICA DO PLACAR AO VIVO (FIREBASE)
+        // ==========================================
+        db.ref('jogadores').on('value', (snapshot) => {
+            const lista = document.getElementById('listaJogadores');
+            lista.innerHTML = ''; // Limpa a lista atual
+
+            if (!snapshot.exists()) {
+                lista.innerHTML = '<p style="color: #b2bec3; text-align: center;">Nenhum jogador conectado ainda...</p>';
+                return;
+            }
+
+            // Transforma o objeto do Firebase em um Array e ordena por pontos (quem tem mais fica no topo)
+            let jogadoresArray = [];
+            snapshot.forEach((child) => {
+                jogadoresArray.push({ nome: child.key, ...child.val() });
+            });
+            jogadoresArray.sort((a, b) => b.pontos - a.pontos);
+
+            jogadoresArray.forEach((jogador) => {
+                const div = document.createElement('div');
+                const bateuBingo = jogador.pontos === 15;
+                div.className = bateuBingo ? 'jogador-row ganhador' : 'jogador-row';
+                
+                div.innerHTML = `
+                    <span style="font-weight: 800; color: ${bateuBingo ? '#2d3436' : '#6c5ce7'}">${jogador.nome}</span>
+                    <span>${jogador.pontos}/15 🎯</span>
+                    <span>${jogador.status}</span>
+                `;
+                lista.appendChild(div);
+            });
+        });
+    </script>
+</body>
+</html>
