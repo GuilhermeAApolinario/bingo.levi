@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Convidados - Chá do Levi</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #fdf6e3; /* Fundo amarelinho claro */
+            margin: 0; padding: 20px;
+            color: #2c3e50;
+        }
+        .container {
+            max-width: 1000px; margin: 0 auto;
+        }
+        .header {
+            text-align: center; margin-bottom: 30px;
+        }
+        h1 { color: #e58e26; font-size: 36px; margin: 0 0 10px 0; }
+        p { color: #7f8c8d; font-size: 18px; margin: 0; }
+
+        /* Dashboard de Resumo */
+        .resumo-cards {
+            display: flex; gap: 20px; justify-content: space-between; margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .card {
+            background: #ffffff; flex: 1; min-width: 150px;
+            border-radius: 20px; padding: 20px; text-align: center;
+            box-shadow: 0 10px 20px rgba(229, 142, 38, 0.1);
+            border: 3px solid #fad390;
+        }
+        .card h3 { margin: 0; color: #7f8c8d; font-size: 16px; font-weight: 500; }
+        .card .numero { font-size: 36px; font-weight: 700; color: #e58e26; margin-top: 5px; }
+        .card.total { border-color: #079992; background: #e8f8f5; }
+        .card.total .numero { color: #079992; }
+
+        /* Tabela de Convidados */
+        .tabela-container {
+            background: #ffffff; border-radius: 20px; padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { 
+            background: #f6b93b; color: white; padding: 15px; text-align: left;
+            font-size: 18px; font-weight: 600; border-radius: 10px 10px 0 0;
+        }
+        td { padding: 15px; border-bottom: 1px solid #f1f2f6; font-size: 16px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #fffbfa; }
+        
+        .tag-fralda {
+            background: #fad390; color: #d35400; padding: 5px 12px;
+            border-radius: 15px; font-weight: 700; font-size: 14px;
+        }
+        .data-hora { color: #b2bec3; font-size: 14px; }
+
+        .btn-imprimir {
+            display: block; width: 200px; margin: 30px auto 0; padding: 15px;
+            background: #079992; color: white; text-align: center; border-radius: 12px;
+            text-decoration: none; font-size: 18px; font-weight: 600; cursor: pointer;
+            border: none; font-family: 'Fredoka', sans-serif; transition: 0.3s;
+        }
+        .btn-imprimir:hover { background: #05706a; transform: translateY(-2px); }
+
+        @media print {
+            body { background: white; }
+            .resumo-cards, .btn-imprimir { display: none; }
+            .tabela-container { box-shadow: none; padding: 0; }
+            th { background: #eee; color: black; border-radius: 0; }
+            .tag-fralda { background: none; border: 1px solid #000; color: #000; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div style="font-size: 50px; margin-bottom: 10px;">🐻📋🍯</div>
+            <h1>Painel do Chá do Levi</h1>
+            <p>Acompanhe ao vivo quem já confirmou presença!</p>
+        </div>
+
+        <div class="resumo-cards">
+            <div class="card total">
+                <h3>Total de Convidados</h3>
+                <div class="numero" id="totalConvidados">0</div>
+            </div>
+            <div class="card">
+                <h3>Fraldas P</h3>
+                <div class="numero" id="totalP">0</div>
+            </div>
+            <div class="card">
+                <h3>Fraldas M</h3>
+                <div class="numero" id="totalM">0</div>
+            </div>
+            <div class="card">
+                <h3>Fraldas G</h3>
+                <div class="numero" id="totalG">0</div>
+            </div>
+        </div>
+
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Convidado</th>
+                        <th>Tamanho da Fralda</th>
+                        <th>Mimo Escolhido 🎁</th>
+                        <th>Confirmou em:</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaCorpo">
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #b2bec3;">Carregando lista...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button class="btn-imprimir" onclick="window.print()">🖨️ Salvar PDF / Imprimir</button>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. COLE SUAS CHAVES DO FIREBASE AQUI
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBMHqbPvA1al5GS3HgncuE-At1iV1ZHJTw",
+            authDomain: "bingo-levi.firebaseapp.com",
+            projectId: "bingo-levi",
+            storageBucket: "bingo-levi.firebasestorage.app",
+            messagingSenderId: "299654685917",
+            appId: "1:299654685917:web:e44f6e7b33fc413f01e734",
+            measurementId: "G-7WEZMLKFWF"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+
+        // Escutando o banco de dados em tempo real
+        db.ref('confirmacoes').on('value', (snapshot) => {
+            const tbody = document.getElementById('tabelaCorpo');
+            tbody.innerHTML = ''; // Limpa a tabela
+            
+            let contagem = { P: 0, M: 0, G: 0, Total: 0 };
+
+            if (!snapshot.exists()) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #b2bec3;">Ninguém confirmou ainda. Mande o link para a galera!</td></tr>';
+                atualizarResumo(contagem);
+                return;
+            }
+
+            snapshot.forEach((child) => {
+                const dados = child.val();
+                
+                // Atualiza a contagem do Dashboard
+                contagem.Total++;
+                if (dados.fralda) {
+                    contagem[dados.fralda]++;
+                }
+
+                // Cria a linha da tabela
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 600; color: #e58e26;">${dados.nome}</td>
+                    <td><span class="tag-fralda">Tamanho ${dados.fralda}</span></td>
+                    <td>${dados.mimo || '-'}</td>
+                    <td class="data-hora">${dados.data_hora || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            atualizarResumo(contagem);
+        });
+
+        function atualizarResumo(contagem) {
+            document.getElementById('totalConvidados').innerText = contagem.Total;
+            document.getElementById('totalP').innerText = contagem.P;
+            document.getElementById('totalM').innerText = contagem.M;
+            document.getElementById('totalG').innerText = contagem.G;
+        }
+    </script>
+</body>
+</html>
