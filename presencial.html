@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convite e Confirmação - Chá do Levi</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #fdf6e3;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+        .card {
+            background: #ffffff; width: 100%; max-width: 450px;
+            border-radius: 25px; padding: 30px 20px; text-align: center;
+            box-shadow: 0 10px 25px rgba(229, 142, 38, 0.15);
+            border: 4px solid #fad390;
+        }
+        h1 { color: #e58e26; margin: 0 0 5px 0; font-size: 32px; line-height: 1.1; }
+        p.subtitulo { color: #7f8c8d; font-size: 16px; margin-bottom: 20px; }
+        
+        /* Caixinha do Convite */
+        .caixa-info {
+            background: #fffbfa;
+            border: 2px dashed #f6b93b;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .item-info {
+            margin: 10px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        .item-info span {
+            display: block;
+            font-weight: 700;
+            color: #e58e26;
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+
+        /* Formulário */
+        .divisor {
+            height: 2px; background: #fae1b4; width: 80%; margin: 0 auto 25px auto; border-radius: 2px;
+        }
+
+        h2 { color: #e58e26; font-size: 22px; margin-bottom: 15px; }
+
+        input[type="text"] {
+            width: 100%; padding: 15px; border-radius: 12px;
+            border: 2px solid #f6b93b; font-size: 16px; font-family: 'Fredoka', sans-serif;
+            margin-bottom: 20px; outline: none; transition: 0.3s;
+        }
+        input[type="text"]:focus { border-color: #e58e26; box-shadow: 0 0 10px rgba(229,142,38,0.2); }
+
+        .fraldas-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        
+        .fralda-option {
+            background: #fffbfa; border: 2px dashed #f6b93b; border-radius: 12px;
+            padding: 15px; cursor: pointer; display: flex; justify-content: space-between;
+            align-items: center; font-size: 18px; color: #2c3e50; font-weight: 500;
+            transition: 0.2s;
+        }
+        .fralda-option:hover:not(.esgotado) { background: #fae1b4; }
+        .fralda-option.selecionado { background: #f6b93b; color: white; border-style: solid; font-weight: 600; }
+        
+        .fralda-option.esgotado {
+            background: #ecf0f1; border-color: #bdc3c7; color: #95a5a6;
+            cursor: not-allowed; text-decoration: line-through;
+        }
+        
+        .titulo-secao { color: #e58e26; text-align: left; margin-bottom: 10px; font-size: 16px; font-weight: 600; }
+
+        .btn-confirmar {
+            width: 100%; padding: 18px; background: #e58e26; color: white; margin-top: 10px;
+            border: none; border-radius: 15px; font-size: 18px; font-weight: 600;
+            cursor: pointer; font-family: 'Fredoka', sans-serif; transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(229,142,38,0.3);
+        }
+        .btn-confirmar:hover { background: #d35400; transform: translateY(-2px); }
+
+        #mensagemSucesso {
+            display: none; background: #e8f8f5; color: #079992; border: 2px solid #b8e994;
+            padding: 30px 20px; border-radius: 25px; margin-top: 20px; text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="formCard">
+        <div style="font-size: 45px; margin-bottom: 10px;">🐻🍯🎈</div>
+        <h1>Chá do Levi<br>Henrique</h1>
+        <p class="subtitulo">Um pote de mel e muito amor estão a caminho!</p>
+
+        <div class="caixa-info">
+            <div class="item-info">
+                <span>🗓️ Quando?</span>
+                10 de Maio, às 14h
+            </div>
+            <div class="item-info">
+                <span>📍 Onde?</span>
+                Rua Antônio Calarga Sobrinho, 26<br>Garça - SP
+            </div>
+        </div>
+
+        <div class="divisor"></div>
+
+        <h2>Confirme sua Presença</h2>
+
+        <input type="text" id="nomeConvidado" placeholder="Seu Nome Completo" autocomplete="off">
+
+        <div class="titulo-secao">Qual pacote de fralda você vai trazer?</div>
+        
+        <div class="fraldas-container">
+            <div class="fralda-option" id="btn-P" onclick="selecionarFralda('P')">
+                Fralda Tamanho P <span id="qtd-P">...</span>
+            </div>
+            <div class="fralda-option" id="btn-M" onclick="selecionarFralda('M')">
+                Fralda Tamanho M <span id="qtd-M">...</span>
+            </div>
+            <div class="fralda-option" id="btn-G" onclick="selecionarFralda('G')">
+                Fralda Tamanho G <span id="qtd-G">...</span>
+            </div>
+        </div>
+
+        <div class="titulo-secao">E qual mimo você escolheu? 🎁</div>
+        <input type="text" id="mimoConvidado" placeholder="Ex: Lenço umedecido, Pomada..." autocomplete="off">
+
+        <button class="btn-confirmar" onclick="salvarConfirmacao()">Enviar Confirmação</button>
+    </div>
+
+    <div class="card" id="mensagemSucesso">
+        <div style="font-size: 50px; margin-bottom: 10px;">✅🧸</div>
+        <h2 style="color: #079992; margin: 0 0 10px 0; font-size: 28px;">Presença Confirmada!</h2>
+        <p style="color: #2c3e50; margin: 0; font-size: 18px;">Muito obrigado! O Levi Henrique está ansioso para te ver. 💛</p>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. COLE SUAS CHAVES DO FIREBASE AQUI
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBMHqbPvA1al5GS3HgncuE-At1iV1ZHJTw",
+            authDomain: "bingo-levi.firebaseapp.com",
+            projectId: "bingo-levi",
+            storageBucket: "bingo-levi.firebasestorage.app",
+            messagingSenderId: "299654685917",
+            appId: "1:299654685917:web:e44f6e7b33fc413f01e734",
+            measurementId: "G-7WEZMLKFWF"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+
+        // ==========================================
+        // 2. DEFINA AS QUANTIDADES MÁXIMAS AQUI
+        // ==========================================
+        const limiteFraldas = {
+            P: 20, 
+            M: 40, 
+            G: 30  
+        };
+
+        let fraldaSelecionada = "";
+        let contagemAtual = { P: 0, M: 0, G: 0 };
+
+        db.ref('confirmacoes').on('value', (snapshot) => {
+            contagemAtual = { P: 0, M: 0, G: 0 };
+            
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => {
+                    let tamanho = child.val().fralda;
+                    if(contagemAtual[tamanho] !== undefined) {
+                        contagemAtual[tamanho]++;
+                    }
+                });
+            }
+            atualizarBotoes();
+        });
+
+        function atualizarBotoes() {
+            ['P', 'M', 'G'].forEach(tamanho => {
+                const btn = document.getElementById(`btn-${tamanho}`);
+                const span = document.getElementById(`qtd-${tamanho}`);
+                const restantes = limiteFraldas[tamanho] - contagemAtual[tamanho];
+
+                if (restantes <= 0) {
+                    btn.classList.add('esgotado');
+                    btn.classList.remove('selecionado');
+                    span.innerText = "Esgotado ❌";
+                    if (fraldaSelecionada === tamanho) fraldaSelecionada = ""; 
+                } else {
+                    btn.classList.remove('esgotado');
+                    span.innerText = `(${restantes} vagas)`;
+                }
+            });
+        }
+
+        function selecionarFralda(tamanho) {
+            if (contagemAtual[tamanho] >= limiteFraldas[tamanho]) return;
+
+            fraldaSelecionada = tamanho;
+            
+            document.querySelectorAll('.fralda-option').forEach(el => el.classList.remove('selecionado'));
+            document.getElementById(`btn-${tamanho}`).classList.add('selecionado');
+        }
+
+        function salvarConfirmacao() {
+            const nome = document.getElementById('nomeConvidado').value.trim();
+            const mimo = document.getElementById('mimoConvidado').value.trim();
+            
+            if (nome === "") return alert("Por favor, digite seu nome!");
+            if (fraldaSelecionada === "") return alert("Por favor, escolha um tamanho de fralda disponível!");
+            if (mimo === "") return alert("Por favor, nos conte qual mimo você vai trazer!");
+
+            if (contagemAtual[fraldaSelecionada] >= limiteFraldas[fraldaSelecionada]) {
+                return alert("Puxa! Esse tamanho acabou de esgotar. Escolha outro, por favor!");
+            }
+
+            const novaConfirmacao = db.ref('confirmacoes').push();
+            novaConfirmacao.set({
+                nome: nome,
+                fralda: fraldaSelecionada,
+                mimo: mimo,
+                data_hora: new Date().toLocaleString('pt-BR')
+            }).then(() => {
+                document.getElementById('formCard').style.display = 'none';
+                document.getElementById('mensagemSucesso').style.display = 'flex';
+                document.getElementById('mensagemSucesso').style.flexDirection = 'column';
+                document.getElementById('mensagemSucesso').style.alignItems = 'center';
+            }).catch((error) => {
+                alert("Erro ao confirmar: " + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
