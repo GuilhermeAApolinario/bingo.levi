@@ -4,27 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Convite e Confirmação - Chá do Levi</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        * { box-sizing: border-box; }
+        /* O asterisco (*) significa "aplique em tudo" */
+        * { box-sizing: border-box; } 
+        
+        /* O body é o corpo da página inteira */
         body {
             font-family: 'Fredoka', sans-serif;
-            background-color: #fdf6e3;
+            background-color: #fdf6e3; /* Cor de fundo creme */
             margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
+
+        /* O .card é a caixinha branca principal onde tudo fica dentro */
         .card {
             background: #ffffff; width: 100%; max-width: 450px;
             border-radius: 25px; padding: 30px 20px; text-align: center;
-            box-shadow: 0 10px 25px rgba(229, 142, 38, 0.15);
+            box-shadow: 0 10px 25px rgba(229, 142, 38, 0.15); /* Sombrinha laranja */
             border: 4px solid #fad390;
         }
+
         h1 { color: #e58e26; margin: 0 0 5px 0; font-size: 32px; line-height: 1.1; }
         p.subtitulo { color: #7f8c8d; font-size: 16px; margin-bottom: 20px; }
         
-        /* Caixinha do Convite */
+        /* Caixinha pontilhada de informações (data, local) */
         .caixa-info {
             background: #fffbfa;
             border: 2px dashed #f6b93b;
@@ -33,26 +41,15 @@
             margin-bottom: 25px;
             text-align: center;
         }
-        .item-info {
-            margin: 10px 0;
-            color: #2c3e50;
-            font-size: 16px;
-        }
-        .item-info span {
-            display: block;
-            font-weight: 700;
-            color: #e58e26;
-            font-size: 18px;
-            margin-bottom: 3px;
-        }
+        .item-info { margin: 10px 0; color: #2c3e50; font-size: 16px; }
+        .item-info span { display: block; font-weight: 700; color: #e58e26; font-size: 18px; margin-bottom: 3px; }
 
-        /* Formulário */
-        .divisor {
-            height: 2px; background: #fae1b4; width: 80%; margin: 0 auto 25px auto; border-radius: 2px;
-        }
+        /* A linha divisória no meio da tela */
+        .divisor { height: 2px; background: #fae1b4; width: 80%; margin: 0 auto 25px auto; border-radius: 2px; }
 
         h2 { color: #e58e26; font-size: 22px; margin-bottom: 15px; }
 
+        /* Estilo da caixa de texto onde a pessoa digita */
         input[type="text"] {
             width: 100%; padding: 15px; border-radius: 12px;
             border: 2px solid #f6b93b; font-size: 16px; font-family: 'Fredoka', sans-serif;
@@ -60,17 +57,20 @@
         }
         input[type="text"]:focus { border-color: #e58e26; box-shadow: 0 0 10px rgba(229,142,38,0.2); }
 
+        /* Estilo dos botões de escolher fralda */
         .fraldas-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        
         .fralda-option {
             background: #fffbfa; border: 2px dashed #f6b93b; border-radius: 12px;
             padding: 15px; cursor: pointer; display: flex; justify-content: space-between;
             align-items: center; font-size: 18px; color: #2c3e50; font-weight: 500;
             transition: 0.2s;
         }
+        
+        /* O que acontece quando passa o mouse ou clica na fralda */
         .fralda-option:hover:not(.esgotado) { background: #fae1b4; }
         .fralda-option.selecionado { background: #f6b93b; color: white; border-style: solid; font-weight: 600; }
         
+        /* Estilo para quando a fralda atinge o limite e esgota */
         .fralda-option.esgotado {
             background: #ecf0f1; border-color: #bdc3c7; color: #95a5a6;
             cursor: not-allowed; text-decoration: line-through;
@@ -78,6 +78,7 @@
         
         .titulo-secao { color: #e58e26; text-align: left; margin-bottom: 10px; font-size: 16px; font-weight: 600; }
 
+        /* O botão laranjão principal de Enviar */
         .btn-confirmar {
             width: 100%; padding: 18px; background: #e58e26; color: white; margin-top: 10px;
             border: none; border-radius: 15px; font-size: 18px; font-weight: 600;
@@ -86,13 +87,10 @@
         }
         .btn-confirmar:hover { background: #d35400; transform: translateY(-2px); }
 
+        /* A tela de sucesso (começa escondida com display: none) */
         #mensagemSucesso {
             display: none; background: #e8f8f5; color: #079992; border: 2px solid #b8e994;
             padding: 30px 20px; border-radius: 25px; margin-top: 20px; text-align: center;
-        }
-
-        .meu-emoji-coracao::after {
-        content: "\2764\FE0F"; 
         }
     </style>
 </head>
@@ -137,7 +135,7 @@
         <div class="titulo-secao">E qual mimo você escolheu? 🎁</div>
         <input type="text" id="mimoConvidado" placeholder="Ex: Deixa a escolha do seu coração... ❤️" autocomplete="off"> 
 
-        <button class="btn-confirmar" onclick="salvarConfirmacao()">Enviar Confirmação</button>
+        <button class="btn-confirmar" id="btnEnviar" onclick="salvarConfirmacao()">Enviar Confirmação</button>
     </div>
 
     <div class="card" id="mensagemSucesso">
@@ -148,7 +146,7 @@
 
     <script>
         // ==========================================
-        // 1. COLE SUAS CHAVES DO FIREBASE AQUI
+        // PASSO A: CONECTAR NO BANCO DE DADOS
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBMHqbPvA1al5GS3HgncuE-At1iV1ZHJTw",
@@ -159,87 +157,148 @@
             appId: "1:299654685917:web:e44f6e7b33fc413f01e734",
             measurementId: "G-7WEZMLKFWF"
         };
+        // Só liga o Firebase se ele já não estiver ligado
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        // Cria uma "ponte" curta chamada 'db' para não ter que digitar firebase.database() toda hora
         const db = firebase.database();
 
         // ==========================================
-        // 2. DEFINA AS QUANTIDADES MÁXIMAS AQUI
+        // PASSO B: VARIÁVEIS DE CONTROLE
+        // Variáveis são "caixinhas" na memória do computador que guardam informações
         // ==========================================
-        const limiteFraldas = {
-            P: 30, 
-            M: 20, 
-            G: 15  
-        };
+        const limiteFraldas = { P: 30, M: 20, G: 15 };
+        
+        // Começa vazia, pois o usuário ainda não clicou em nenhuma fralda
+        let fraldaSelecionada = ""; 
+        // Começa tudo zerado. O Firebase vai preencher isso depois
+        let contagemAtual = { P: 0, M: 0, G: 0 }; 
 
-        let fraldaSelecionada = "";
-        let contagemAtual = { P: 0, M: 0, G: 0 };
-
+        // ==========================================
+        // PASSO C: OUVIR O BANCO DE DADOS EM TEMPO REAL
+        // O '.on' fica escutando a pasta 'confirmacoes'. Se alguém salvar uma fralda lá, ele atualiza a tela na hora!
+        // ==========================================
         db.ref('confirmacoes').on('value', (snapshot) => {
-            contagemAtual = { P: 0, M: 0, G: 0 };
+            contagemAtual = { P: 0, M: 0, G: 0 }; // Zera para contar de novo
             
-            if (snapshot.exists()) {
+            if (snapshot.exists()) { // Se tem dados salvos lá...
                 snapshot.forEach((child) => {
-                    let tamanho = child.val().fralda;
+                    let tamanho = child.val().fralda; // Pega o tamanho que a pessoa escolheu
+                    // Se o tamanho for P, M ou G, ele soma +1 na nossa contagemAtual
                     if(contagemAtual[tamanho] !== undefined) {
-                        contagemAtual[tamanho]++;
+                        contagemAtual[tamanho]++; 
                     }
                 });
             }
-            atualizarBotoes();
+            atualizarBotoes(); // Chama a função que muda a cor do botão se esgotar
         });
 
+        // Função que verifica se as fraldas esgotaram para riscar o botão
         function atualizarBotoes() {
+            // Roda o código 3 vezes (uma para P, uma para M, uma para G)
             ['P', 'M', 'G'].forEach(tamanho => {
                 const btn = document.getElementById(`btn-${tamanho}`);
                 const span = document.getElementById(`qtd-${tamanho}`);
-                const restantes = limiteFraldas[tamanho] - contagemAtual[tamanho];
+                const restantes = limiteFraldas[tamanho] - contagemAtual[tamanho]; // Matemática simples: Total - O que já levaram
 
-                if (restantes <= 0) {
-                    btn.classList.add('esgotado');
+                if (restantes <= 0) { // Se acabou
+                    btn.classList.add('esgotado'); // Coloca a classe CSS cinza
                     btn.classList.remove('selecionado');
                     span.innerText = "Esgotado ❌";
                     if (fraldaSelecionada === tamanho) fraldaSelecionada = ""; 
-                } else {
+                } else { // Se ainda tem
                     btn.classList.remove('esgotado');
                     span.innerText = `(${restantes} vagas)`;
                 }
             });
         }
 
+        // Função que pinta o botão de laranja quando a pessoa clica
         function selecionarFralda(tamanho) {
+            // Se já esgotou, ele 'return' (para o código aqui e não faz nada)
             if (contagemAtual[tamanho] >= limiteFraldas[tamanho]) return;
 
-            fraldaSelecionada = tamanho;
+            fraldaSelecionada = tamanho; // Guarda qual tamanho a pessoa clicou na nossa variável
             
+            // Tira a cor laranja de todos os botões primeiro
             document.querySelectorAll('.fralda-option').forEach(el => el.classList.remove('selecionado'));
+            // E coloca a cor laranja SÓ no botão que a pessoa clicou
             document.getElementById(`btn-${tamanho}`).classList.add('selecionado');
         }
 
+        // ==========================================
+        // PASSO D: A GRANDE FUNÇÃO COMBO (FIREBASE + EMAIL)
+        // Isso roda quando a pessoa clica em "Enviar Confirmação"
+        // ==========================================
         function salvarConfirmacao() {
+            // 1. Pega (get) os valores (value) que a pessoa digitou nas caixas. O trim() apaga espaços vazios sem querer.
             const nome = document.getElementById('nomeConvidado').value.trim();
             const mimo = document.getElementById('mimoConvidado').value.trim();
+            const btn = document.getElementById('btnEnviar');
             
+            // 2. Validação: Protege para a pessoa não enviar tudo em branco
             if (nome === "") return alert("Por favor, digite seu nome!");
             if (fraldaSelecionada === "") return alert("Por favor, escolha um tamanho de fralda disponível!");
             if (mimo === "") return alert("Por favor, nos conte qual mimo você vai trazer!");
 
+            // Proteção extra caso duas pessoas cliquem na última fralda ao mesmo tempo
             if (contagemAtual[fraldaSelecionada] >= limiteFraldas[fraldaSelecionada]) {
                 return alert("Puxa! Esse tamanho acabou de esgotar. Escolha outro, por favor!");
             }
 
-            const novaConfirmacao = db.ref('confirmacoes').push();
+            // 3. Muda a cara do botão para o usuário saber que tá carregando
+            btn.innerText = "Processando...";
+            btn.disabled = true;
+
+            // 4. Salvar no Firebase
+            const novaConfirmacao = db.ref('confirmacoes').push(); // Cria um "ID único" no banco
+            
+            // O .set é o comando que realmente joga os dados pra nuvem do Google
             novaConfirmacao.set({
                 nome: nome,
                 fralda: fraldaSelecionada,
                 mimo: mimo,
                 data_hora: new Date().toLocaleString('pt-BR')
-            }).then(() => {
+            })
+            // O .then() significa: "E ENTÃO, se salvou no banco de dados com sucesso, faça o que está aqui dentro"
+            .then(() => {
+                
+                // ⚠️ AQUI VOCÊ COLOCA OS E-MAILS DE VOCÊS ⚠️
+                const emailDoGuilherme = "guiiee.rock1@gmail.com"; 
+                const emailDaMaria = "klaraoliveiralima234@gmail.com";
+                
+                // O 'fetch' é o mensageiro do JavaScript. Ele viaja até o FormSubmit para despachar o e-mail.
+                return fetch(`https://formsubmit.co/ajax/${emailDoGuilherme}`, {
+                    method: "POST", // POST significa "enviar dados"
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ // Transforma as informações em um pacote de texto
+                        Nome: nome,
+                        Fralda: fraldaSelecionada,
+                        Mimo: mimo,
+                        _cc: emailDaMaria, // A cópia para a Maria vai aqui!
+                        _subject: `🎉 Confirmação: ${nome} - Chá do Levi` // O assunto do e-mail
+                    })
+                });
+            })
+            // O código chega aqui quando o e-mail foi disparado
+            .then(response => response.json())
+            .then(data => {
+                // Tudo deu certo! Banco de dados salvo e e-mail enviado!
+                // Então, escondemos o formulário inteiro...
                 document.getElementById('formCard').style.display = 'none';
+                
+                // E fazemos aparecer a tela verde bonita de sucesso!
                 document.getElementById('mensagemSucesso').style.display = 'flex';
                 document.getElementById('mensagemSucesso').style.flexDirection = 'column';
                 document.getElementById('mensagemSucesso').style.alignItems = 'center';
-            }).catch((error) => {
-                alert("Erro ao confirmar: " + error.message);
+            })
+            // O .catch() é o salva-vidas. Se a internet cair ou der algum erro lá no Google, ele avisa.
+            .catch((error) => {
+                alert("Ops! Erro ao confirmar: " + error.message);
+                btn.innerText = "Enviar Confirmação"; // Volta o botão ao normal
+                btn.disabled = false;
             });
         }
     </script>
