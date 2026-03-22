@@ -17,11 +17,11 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            padding: 20px;
+            padding: 15px;
             color: #2d3436;
         }
 
-        /* Paineis flutuantes (Glassmorphism) */
+        /* Paineis flutuantes */
         #login-screen, #bingo-screen { 
             background: rgba(255, 255, 255, 0.9); 
             padding: 30px; 
@@ -58,31 +58,108 @@
         .grid { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
-            gap: 8px; width: 100%; margin-top: 15px; 
+            gap: 8px; 
+            width: 100%; 
+            margin-top: 15px; 
         }
+        
+        /* Células base */
         .cell { 
-            background: #ffffff; border: 2px solid #a29bfe; border-radius: 12px; 
-            padding: 5px; font-size: 12px; font-weight: 800; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; 
-            aspect-ratio: 1/1; text-align: center; transition: all 0.2s;
+            background: #ffffff; 
+            border: 1px solid #c8d6e5;
+            border-radius: 12px;
+            padding: 5px; 
+            font-size: clamp(9px, 2.5vw, 14px); 
+            font-weight: 800; cursor: pointer; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            aspect-ratio: 1/1; 
+            text-align: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #4b6584;
-        }
-        
-        /* Efeito de marcado */
-        .cell.marcado { 
-            background: #55efc4; color: #2d3436; text-decoration: line-through; 
-            border-color: #00b894; transform: scale(0.95); 
-            box-shadow: inset 0 3px 5px rgba(0,0,0,0.1); 
-        }
-        
-        /* Quadrado Central do Levi */
-        .central { 
-            background: #ffeaa7; color: #d63031; font-size: 14px; 
-            border-color: #fdcb6e; pointer-events: none; 
-            box-shadow: 0 0 15px rgba(253, 203, 110, 0.4);
+            word-break: break-word; line-height: 1.1;
+            transition: all 0.2s ease-in-out;
+            position: relative;
         }
 
-        /* Botão Secundário (Gerar Nova) */
+        .cell:hover:not(.central):not(.marcado) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .cell:active:not(.central) {
+            transform: scale(0.92);
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        /* Efeito Selecionado (Premium com Sombras e Animação) */
+        .cell.marcado { 
+            background: #2bcbba !important; 
+            color: rgba(255, 255, 255, 0.85) !important; 
+            text-decoration: line-through; 
+            border-color: #26af9f !important;
+            transform: scale(0.98); 
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.2) !important;
+            position: relative;
+            animation: carimboPop 0.4s ease-out;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .cell.marcado::after {
+            content: "✓";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            font-size: 2.2em; 
+            color: white;
+            font-weight: 900;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 0; 
+            animation: fadeInCheckPop 0.5s ease-out forwards; 
+            animation-delay: 0.1s; 
+        }
+
+        /* Quadrado Central do Levi (Turbinado e Animado) */
+        .central { 
+            background: linear-gradient(135deg, #ffeaa7 0%, #f1c40f 100%) !important; 
+            color: #0984e3 !important; 
+            font-size: clamp(10px, 3vw, 15px) !important; 
+            font-weight: 900; 
+            border: 3px solid #e67e22 !important; 
+            border-radius: 12px;
+            pointer-events: none; 
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.5), 0 0 20px rgba(241, 196, 15, 0.7) !important;
+            animation: pulsarGlow 2s infinite alternate !important;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            line-height: 1.2;
+        }
+
+        .central::before {
+            content: "⭐";
+            font-size: 1.2em;
+            margin-bottom: 2px;
+        }
+
+        /* Animações */
+        @keyframes carimboPop {
+            0% { transform: scale(1); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+            40% { transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+            100% { transform: scale(0.98); box-shadow: inset 0 3px 8px rgba(0,0,0,0.2); }
+        }
+
+        @keyframes fadeInCheckPop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+            60% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes pulsarGlow {
+            from { box-shadow: inset 0 0 10px rgba(255,255,255,0.3), 0 0 15px rgba(241, 196, 15, 0.5); transform: scale(1); }
+            to { box-shadow: inset 0 0 20px rgba(255,255,255,0.6), 0 0 30px rgba(241, 196, 15, 0.9); transform: scale(1.03); }
+        }
+
+        @keyframes piscar { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Botão Secundário */
         button.btn-secondary {
             margin-top: 25px; padding: 12px 20px; background: #ff7675; color: white; 
             border: none; border-radius: 12px; font-weight: 800; font-size: 14px; 
@@ -90,12 +167,18 @@
         }
         button.btn-secondary:hover { background: #d63031; transform: translateY(-2px); }
 
-        /* Animação BINGO */
         .bingo-alert {
             display: none; color: #d63031; font-size: 24px; font-weight: 900; 
             margin-top: 15px; animation: piscar 1s infinite alternate;
         }
-        @keyframes piscar { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Responsivo (Celular) */
+        @media (max-width: 600px) {
+            #login-screen, #bingo-screen { padding: 15px; }
+            .grid { gap: 4px; }
+            .cell { padding: 2px; border-width: 1px; border-radius: 8px; }
+            h1, h2 { font-size: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -104,7 +187,7 @@
         <div style="font-size: 40px; margin-bottom: 10px;">🧸</div>
         <h1>Chá do Levi</h1>
         <p class="subtitle">Digite seu nome para pegar sua cartela interativa!</p>
-        <input type="text" id="nomeJogador" placeholder="Ex: Tio Guilherme" autocomplete="off">
+        <input type="text" id="nomeJogador" placeholder="Ex: Tio do Guilherme ou Tia da Maria" autocomplete="off">
         <button class="btn-primary" onclick="entrarNoJogo()">Entrar no Bingo</button>
     </div>
 
@@ -118,9 +201,6 @@
     </div>
 
     <script>
-        // ==========================================
-        // 1. COLE SUAS CHAVES DO FIREBASE AQUI
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBMHqbPvA1al5GS3HgncuE-At1iV1ZHJTw",
             authDomain: "bingo-levi.firebaseapp.com",
@@ -130,7 +210,7 @@
             appId: "1:299654685917:web:e44f6e7b33fc413f01e734",
             measurementId: "G-7WEZMLKFWF"
         };
-        // Inicializa o Firebase
+        
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -138,7 +218,6 @@
 
         let meuNome = "";
         
-        // Manteve-se uma lista grande de palavras para as cartelas poderem ser bem diferentes umas das outras
         const palavras = [
             "Fralda P", "Fralda M", "Fralda G", "Lenço Umedecido", "Pomada", 
             "Shampoo", "Sabonete", "Cotonete", "Algodão", "Escova", 
@@ -166,16 +245,14 @@
 
         function gerarCartela() {
             const board = document.getElementById('board');
-            board.innerHTML = ""; // Limpa a cartela antiga
-            document.getElementById('bingoMensagem').style.display = 'none'; // Esconde o aviso de Bingo
+            board.innerHTML = ""; 
+            document.getElementById('bingoMensagem').style.display = 'none'; 
 
-            // Pega apenas 15 palavras aleatórias
             let cartela = shuffle([...palavras]).slice(0, 15);
             
-            // Insere o Levi Henrique em uma posição de destaque (Índice 5 ou 6 ficam no meio do 4x4)
-            cartela.splice(5, 0, "LEVI HENRIQUE"); 
+            // Adicionado <br> para quebrar a linha no nome
+            cartela.splice(5, 0, "LEVI<br>HENRIQUE"); 
 
-            // Zera a pontuação no banco de dados quando gera nova cartela
             db.ref('jogadores/' + meuNome).set({
                 pontos: 0,
                 status: "Jogando..."
@@ -184,9 +261,11 @@
             cartela.forEach((palavra, index) => {
                 const div = document.createElement('div');
                 div.className = 'cell';
-                div.innerText = palavra;
                 
-                if (index === 5) { // O quadrado do Levi
+                // Alterado para innerHTML para ler o <br> corretamente
+                div.innerHTML = palavra; 
+                
+                if (index === 5) { 
                     div.classList.add('central');
                 } else {
                     div.onclick = function() { marcar(this); };
@@ -198,13 +277,9 @@
         function marcar(elemento) {
             elemento.classList.toggle('marcado');
             
-            // Conta quantos itens a pessoa marcou
             const marcados = document.querySelectorAll('.marcado').length;
-            
-            // Se marcou 15 itens, ele bateu o Bingo (o espaço do Levi não conta no clique)
             const bateuBingo = marcados === 15;
 
-            // Atualiza em tempo real no banco de dados
             db.ref('jogadores/' + meuNome).update({
                 pontos: marcados,
                 status: bateuBingo ? "🔥 BINGO!!!" : "Jogando..."
