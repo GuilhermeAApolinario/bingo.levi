@@ -90,6 +90,10 @@
             display: none; background: #e8f8f5; color: #079992; border: 2px solid #b8e994;
             padding: 30px 20px; border-radius: 25px; margin-top: 20px; text-align: center;
         }
+
+        .meu-emoji-coracao::after {
+        content: "\2764\FE0F"; 
+        }
     </style>
 </head>
 <body>
@@ -131,7 +135,7 @@
         </div>
 
         <div class="titulo-secao">E qual mimo você escolheu? 🎁</div>
-        <input type="text" id="mimoConvidado" placeholder="Ex: Lenço umedecido, Pomada..." autocomplete="off">
+        <input type="text" id="mimoConvidado" placeholder="Ex: Deixa a escolha do seu coração... ❤️" autocomplete="off"> 
 
         <button class="btn-confirmar" onclick="salvarConfirmacao()">Enviar Confirmação</button>
     </div>
